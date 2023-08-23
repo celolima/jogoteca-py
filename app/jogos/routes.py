@@ -26,7 +26,7 @@ def criar():
     console = request.form['console']
     jogo = Jogo.query.filter_by(nome=nome).first()
     if jogo:
-        flash('Jogo já existente!')
+        flash('Jogo já existente!', 'danger')
         return redirect(url_for('jogos.index'))
 
     novo_jogo = Jogo(nome=nome, categoria=categoria, console=console)
@@ -36,6 +36,37 @@ def criar():
     # Para não ficar na página '/criar'
     return redirect(url_for('jogos.index'))
 
+@bp.route('/editar/<int:id>')
+def editar(id):
+    if 'usuario_logado' not in session or session['usuario_logado'] == None:
+        return redirect(url_for('jogos.login', proxima=url_for('jogos.editar', id=id)))
+    jogo = Jogo.query.filter_by(id=id).first()
+    return render_template('jogos/editar.html', titulo='Editando Jogo', jogo=jogo)
+
+@bp.route('/atualizar', methods=['POST',])
+def atualizar():
+    jogo = Jogo.query.filter_by(id=request.form['id']).first()
+    jogo.nome = request.form['nome']
+    jogo.categoria = request.form['categoria']
+    jogo.console = request.form['console']
+
+    db.session.add(jogo)
+    db.session.commit()
+    
+    flash('Jogo atualizado com sucesso!', 'success')
+
+    return redirect(url_for('jogos.index'))
+
+@bp.route('/deletar/<int:id>')
+def deletar(id):
+    if 'usuario_logado' not in session or session['usuario_logado'] == None:
+        return redirect(url_for('login'))
+
+    Jogo.query.filter_by(id=id).delete()
+    db.session.commit()
+    flash('Jogo deletado com sucesso!', 'success')
+
+    return redirect(url_for('jogos.index'))
 
 @bp.route('/login')
 def login():
@@ -64,7 +95,7 @@ def autenticar():
             flash('Usuário {} logado com sucesso!'.format(usuario.nome), 'success')
             proxima_pagina = request.form['proxima']
             print(proxima_pagina)
-            return redirect(url_for(f'{proxima_pagina}'))
+            return redirect(proxima_pagina)
     if not autenticado:
         flash('Não foi possível logar com o usuário {}'.format(nickname), 'danger')
         return redirect(url_for('jogos.login'))

@@ -21,7 +21,4 @@ def create_app(config_class=Config):
     def test_page():
         return '<h1>Testing the Flask Application Factory Pattern</h1>'
     
-    # Enable debug, hot deploy on save
-    app.debug = True
-
     return app

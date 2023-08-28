@@ -1,8 +1,9 @@
-from flask import render_template, redirect, url_for, flash, session, request
+from flask import render_template, redirect, url_for, flash, session, request, send_from_directory
 from app.jogos import bp
 from app.extensions import db
 from app.models.jogo import Jogo
 from app.models.usuario import Usuario
+from config import Config
 
 LOGADO = 'usuario_logado'
 
@@ -33,6 +34,10 @@ def criar():
     db.session.add(novo_jogo)
     db.session.commit()
 
+    arquivo = request.files['arquivo']
+    print(arquivo.mimetype_params.keys)
+    arquivo.save(f'{Config.UPLOAD_PATH}/capa{novo_jogo.id}.jpg')
+    
     # Para não ficar na página '/criar'
     return redirect(url_for('jogos.index'))
 
@@ -99,3 +104,7 @@ def autenticar():
     if not autenticado:
         flash('Não foi possível logar com o usuário {}'.format(nickname), 'danger')
         return redirect(url_for('jogos.login'))
+
+@bp.route('/uploads/<nome_arquivo>')
+def imagem(nome_arquivo):
+    return send_from_directory('../static', nome_arquivo)
